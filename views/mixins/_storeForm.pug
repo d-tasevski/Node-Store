@@ -8,7 +8,7 @@ mixin storeForm( store = {} )
         //- Address long and lat
         label( for="address") Address
         input( type="text" id="address" name="location[address]" value=(store.location && store.location.address) )
-        label( for="lng") Address longitude
+        label( for="lng") Address longitude                         <!-- Check if store location exists before accessing [0] -->
         input( type="text" id="lng" name="location[coordinates][0]" value=(store.location && store.location[0]) required)
         label( for="lat") Address latitude
         input( type="text" id="lat" name="location[coordinates][1]" value=(store.location && store.location[1]) required)
