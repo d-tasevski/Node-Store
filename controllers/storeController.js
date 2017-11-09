@@ -1,6 +1,31 @@
 const mongoose = require('mongoose');
+const multer = require('multer'); // image upload validation and functionality
+const jimp = require('jimp'); // for resizing images
+const uuid = require('uuid'); // give unique ids to images
 
 const Store = mongoose.model('Store');
+const multerOptions = {
+    /**
+     * Photo uploading options.
+     * I'm saving photo to memory of server until it uploads(not saving it to drive),
+     * but there is option to save it to drive
+     */
+    storage: multer.memoryStorage(),
+    fileFilter (req, file, next) { // check if its image
+        const isPhoto = file.mimetype.startsWith('image/');
+        if (isPhoto) {
+            /**
+             * if we pass just one argument to next it means that it is an error.
+             * But if we call next(null, true) that means it worked,
+             * and the second value that we've passed will go through.
+             */
+            next(null, true);
+        } else {
+            next({ message: 'That filetype isn\'t allowed' }, false);
+        }
+    }
+};
+
 
 exports.homePage = (req, res) => {
     res.render('index');
@@ -8,6 +33,24 @@ exports.homePage = (req, res) => {
 
 exports.addStore = (req, res) => {
     res.render('editStore', { title: 'Add Store' });
+};
+
+exports.upload = multer(multerOptions).single('photo');
+
+exports.resize = async (req, res, next) => {
+    // check if there is no new file to resize
+    if (!req.file) {
+        next(); // skip to the next middleware
+    }
+    const extension = req.file.mimetype.split('/')[1];
+    // rename photo
+    req.body.photo = `${uuid.v4()}.${extension}`;
+    // resize photo
+    const photo = await jimp.read(req.file.buffer);
+    await photo.resize(800, jimp.AUTO);
+    await photo.write(`./public/uploads/${req.body.photo}`);
+    // once photo is written to file system, continue
+    next();
 };
 
 exports.createStore = async (req, res) => {
@@ -33,6 +76,8 @@ exports.editStore = async (req, res) => {
 };
 
 exports.updateStore = async (req, res) => {
+    // set the location data to be a point
+    req.body.location.type = 'Point';
     // Find and update the store
     const store = await Store.findOneAndUpdate({ _id: req.params.id }, req.body, {
         new: true, // return the new store instead of the old one

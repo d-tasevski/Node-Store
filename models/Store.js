@@ -33,7 +33,8 @@ const storeSchema = new mongoose.Schema({
             type: String,
             required: 'You must supply address!'
         }
-    }
+    },
+    photo: String
 });
 // Set slug property before saving
 storeSchema.pre('save', function(next) {
