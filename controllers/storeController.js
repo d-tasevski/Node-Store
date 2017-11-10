@@ -68,7 +68,6 @@ exports.getStores = async (req, res) => {
 exports.editStore = async (req, res) => {
     // Find the store given the ID
     const store = await Store.findOne({ _id: req.params.id });
-    console.log(store);
     // confirm that user who's editing is the owner of the store
 
     // Render the edit form, so that user can update it
